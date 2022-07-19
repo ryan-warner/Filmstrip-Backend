@@ -4,9 +4,7 @@ app = Flask(__name__)
 
 @app.route("/api/v1/auth/login", methods=["POST"])
 def login():
-    requestData = request.get_json()
-    testData = requestData["temp"]
-    return {"token": testData}
+    return {"token": "logging in"}
 
 @app.route("/api/v1/auth/logout", methods=["POST"])
 def logout():
