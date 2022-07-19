@@ -1,6 +1,10 @@
 from flask import Flask, request
+from mysql.connector import connect
+import uuid
 
 app = Flask(__name__)
+connection = connect(host='localhost', user='root', database='filmstrip')
+cursor = connection.cursor()
 
 @app.route("/api/v1/auth/login", methods=["POST"])
 def login():
@@ -19,6 +23,14 @@ def user():
             "email": "ryan.warner@gatech.edu"
         }
     else:
+        #print(cursor.execute("INSERT INTO users VALUES ('ryan-warner','Ryan','Warner','ryan.warner@gatech.edu','" + str(uuid.uuid4()) + "');"))
+
+        cursor.execute("INSERT INTO users VALUES ('ryan-warner','Ryan','Warner','ryan.warner@gatech.edu',123)")
+        connection.commit()
+        cursor.execute("SELECT * FROM users")
+        for x in cursor:
+            print(x)
+
         return {"string": "Creating user."}
 
 @app.route("/api/v1/user/photos", methods=["GET"])
