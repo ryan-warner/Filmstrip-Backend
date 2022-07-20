@@ -1,4 +1,4 @@
-### Filmstrip Backend
+# Filmstrip Backend
 
 A backend server build for my Filmstrip project
 
