@@ -1,7 +1,8 @@
 from functools import wraps
 from flask import request
 import jwt
-from db import cursor
+import datetime
+from db import cursor, connection
 
 from dotenv import dotenv_values
 config = dotenv_values(".env")
@@ -34,6 +35,18 @@ def validateToken(f):
                 "data": None,
                 "error": "Unauthorized"
             }, 401
+            if data["exp"] < datetime.now():
+                return {
+                    "message": "User needs to login again!",
+                    "data": None,
+                    "error": "Authentication token expired"
+                }, 401
+            if currentUser[6] == True:
+                return {
+                    "message": "User needs to login again!",
+                    "data": None,
+                    "error": "Unauthorized"
+                }, 401
         except Exception as exception:
             return {
                 "message": "Something went wrong",
@@ -44,3 +57,10 @@ def validateToken(f):
         return f(currentUser, *args, **kwargs)
 
     return decorated
+
+def invalidate(currentUser):
+    updateUser = "UPDATE users SET needsNewToken = true WHERE email = %s"
+    values = (currentUser[3],)
+    cursor.execute(updateUser, values)
+    connection.commit()
+    return None;
