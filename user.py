@@ -1,31 +1,31 @@
 from flask import request, Blueprint
 from db import cursor, connection
 import bcrypt
+import validateToken
 
 userBlueprint = Blueprint("userBlueprint", __name__)
 @userBlueprint.route("/api/v1/user", methods=["GET", "POST", "PATCH", "DELETE"])
-def user():
-    if request.method == "GET":
-        getUser = "SELECT * FROM users WHERE email = %s"
-        values = (request.args["email"],)
-        cursor.execute(getUser, values)
-        result = cursor.fetchone()
-        
-        # Pull password with bytes(result[5])
-        print(bcrypt.checkpw("69P@rkroad5065".encode("utf-8"), bytes(result[5])))
-        
+@validateToken.validateToken
+def user(currentUser):
+    if request.method == "GET":        
         return {
-            "username": result[0],
-            "firstName": result[1],
-            "lastName": result[2],
-            "fullName": result[1] + " " + result[2],
-            "email": result[3]
+            "username": currentUser[0],
+            "firstName": currentUser[1],
+            "lastName": currentUser[2],
+            "fullName": currentUser[1] + " " + currentUser[2],
+            "email": currentUser[3]
         }
     elif request.method == "POST":
+
+        checkUser = "SELECT * FROM users WHERE username = %s OR email = %s"
+        values = (request.form["username"], request.form["email"])
+        cursor.execute(checkUser, values)
+
+        if cursor.fetchone() is not None:
+            return {"result": "User already exists"}
+
         salt = bcrypt.gensalt()
         password = bcrypt.hashpw(request.form["password"].encode("utf-8"), salt)
-        print(len(password))
-        print(password)
 
         values = (request.form["username"], request.form["firstName"], request.form["lastName"], request.form["email"], password)
         registerUser = "INSERT INTO users" \
@@ -34,10 +34,6 @@ def user():
         
         cursor.execute(registerUser, values)
         connection.commit()
-        
-        cursor.execute("SELECT * FROM users")
-        for x in cursor:
-            print(x)
 
         return {"string": "Creating user."}
     
