@@ -7,6 +7,7 @@ userBlueprint = Blueprint("userBlueprint", __name__)
 @userBlueprint.route("/api/v1/user", methods=["GET", "POST", "PATCH", "DELETE"])
 @validateToken.validateToken
 def user(currentUser):
+    ## Method to get user info ##
     if request.method == "GET":        
         return {
             "username": currentUser[0],
@@ -15,6 +16,8 @@ def user(currentUser):
             "fullName": currentUser[1] + " " + currentUser[2],
             "email": currentUser[3]
         }
+
+    ## Method to create user ##
     elif request.method == "POST":
 
         checkUser = "SELECT * FROM users WHERE username = %s OR email = %s"
@@ -36,10 +39,55 @@ def user(currentUser):
         connection.commit()
 
         return {"string": "Creating user."}
-    
+
+    ## Method to update user information ##
     elif request.method == "PATCH":
+        fields = []
+        values = []
+        for item in request.form:
+            if item == "username":
+                fields += [item]
+                values += [request.form[item]]
+                continue;
+            elif item == "firstName":
+                fields += [item]
+                values += [request.form[item]]
+                continue;
+            elif item == "lastName":
+                fields += [item]
+                values += [request.form[item]]
+                continue;
+            elif item == "password":
+                fields += [item]
+                values += [request.form[item]]
+                continue;
+            elif item == "email":
+                fields += [item]
+                values += [request.form[item]]
+                continue;
+            else:
+                return {
+                    "message": "Invalid field provided.",
+                    "data": None,
+                    "error": "Incorrect format"
+                }
+        print(fields)
+        print(values)
+
+        updateUser = "UPDATE users SET "
+
+        for field in fields:
+            if fields.index(field) < len(fields) - 1:
+                updateUser += field + " = %s, "
+            else:
+                updateUser += field + " = %s WHERE email = %s;"
+        values += [currentUser[3]]
+
+        cursor.execute(updateUser, values)
+        connection.commit()
         return {"string": "Updating user."}
 
+    ## Method to delete user ##
     elif request.method == "DELETE":
         getUser = "SELECT * FROM users WHERE email = %s"
         values = (request.form["email"],)
