@@ -112,4 +112,15 @@ def albums(currentUser):
             }
 
     elif request.method == "DELETE":
-        return {"string": "Deleting album."}
+        checkAlbum = "SELECT * FROM albums WHERE albumName = %s AND userID = %s"
+        values = (request.json["albumName"], currentUser[4])
+
+        cursor.execute(checkAlbum, values)
+        if cursor.fetchone() is None:
+            return {"result": "Album does not exist"}
+
+        deleteAlbum = "DELETE FROM albums WHERE albumName = %s AND userID = %s"
+        cursor.execute(deleteAlbum, values)
+        connection.commit()
+
+        return {"string": "Deleted album."}
