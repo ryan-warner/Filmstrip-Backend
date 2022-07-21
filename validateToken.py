@@ -35,7 +35,8 @@ def validateToken(f):
                 "data": None,
                 "error": "Unauthorized"
             }, 401
-            if data["exp"] < datetime.now():
+            print()
+            if datetime.datetime.fromtimestamp(data["exp"]) < datetime.datetime.now():
                 return {
                     "message": "User needs to login again!",
                     "data": None,
@@ -53,6 +54,9 @@ def validateToken(f):
                 "data": None,
                 "error": str(exception)
             }, 500
+
+        if request.path == "/api/v1/auth/verify":
+            return f(*args, **kwargs)
 
         return f(currentUser, *args, **kwargs)
 

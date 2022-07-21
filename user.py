@@ -71,8 +71,6 @@ def user(currentUser):
                     "data": None,
                     "error": "Incorrect format"
                 }
-        print(fields)
-        print(values)
 
         updateUser = "UPDATE users SET "
 
