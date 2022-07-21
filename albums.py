@@ -57,6 +57,48 @@ def albums(currentUser):
         return {"string": "Created album."}
 
     elif request.method == "PATCH":
+        fields = []
+        values = []
+        for item in request.json:
+            if item == "updateName":
+                fields += ["albumName"]
+                values += [request.json[item]]
+                continue;
+            elif item == "updateDescription":
+                fields += ["albumDescription"]
+                values += [request.json[item]]
+                continue;
+            elif item == "updateCamera":
+                fields += ["albumCamera"]
+                values += [request.json[item]]
+                continue;
+            elif item == "updateFormat":
+                fields += ["albumFormat"]
+                values += [request.json[item]]
+                continue;
+            elif item == "updateFilm":
+                fields += ["albumFilm"]
+                values += [request.json[item]]
+                continue;
+            elif item != "albumName":
+                return {
+                    "message": "Invalid field provided.",
+                    "data": None,
+                    "error": "Incorrect format"
+                }
+
+        updateAlbum = "UPDATE albums SET "
+
+        for field in fields:
+            if fields.index(field) < len(fields) - 1:
+                updateAlbum += field + " = %s, "
+            else:
+                updateAlbum += field + " = %s WHERE userID = %s AND albumName = %s;"
+        values += [currentUser[4], request.json["albumName"]]
+
+        cursor.execute(updateAlbum, values)
+        connection.commit()
+
         return {"string": "Updating album."}
 
     elif request.method == "GET":
