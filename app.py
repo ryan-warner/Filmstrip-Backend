@@ -4,13 +4,15 @@ from auth import authBlueprint
 from user import userBlueprint
 from albums import albumsBlueprint
 # export FLASK_DEBUG=1
+# flask run -h localhost -p 4000
 
 app = Flask(__name__)
-cors = CORS(app, origins=["http://localhost:3000"])
+CORS(app)
 
 app.register_blueprint(authBlueprint)
 app.register_blueprint(userBlueprint)
 app.register_blueprint(albumsBlueprint)
+
 
 @app.route("/api/v1/user/photos", methods=["GET"])
 def getPhotos():
