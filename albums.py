@@ -102,7 +102,14 @@ def albums(currentUser):
         return {"string": "Updating album."}
 
     elif request.method == "GET":
-        return {"string": "Getting albums."}
+        getAlbums = "SELECT * FROM albums WHERE userID = %s"
+        values = (currentUser[4],)
+        cursor.execute(getAlbums, values)
+        albums = cursor.fetchall()
+        return {
+                "message": "Retrieved albums.",
+                "albums": albums
+            }
 
     elif request.method == "DELETE":
         return {"string": "Deleting album."}
