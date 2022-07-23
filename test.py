@@ -12,7 +12,7 @@ class Users(db.Model):
     email = db.Column(db.String(255), unique=True)
     firstName = db.Column(db.String(255))
     lastName = db.Column(db.String(255))
-    password = db.Column(db.BINARY(length=60))
+    password = db.Column(db.BINARY(length=60), nullable=False)
     needsNewToken = db.Column(db.Boolean, default=False)
     registrationMethod = db.Column(db.String(255), default="username")
 
@@ -24,6 +24,11 @@ class Albums(db.Model):
     albumCamera = db.Column(db.String(255))
     albumFormat = db.Column(db.String(255), default="35mm")
     albumFilm = db.Column(db.String(255))
+
+
+testUser = Users(username="me3", email="rwarner322@gatech.edu", password=b'123')
+db.session.add(testUser)
+db.session.commit()
 
 for item in Users.query.all():
     print(item.username)
