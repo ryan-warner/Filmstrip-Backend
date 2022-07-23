@@ -2,7 +2,7 @@ import atexit
 #from mysql.connector import connect
 from flask_sqlalchemy import SQLAlchemy
 
-engine = SQLAlchemy.create_engine('mysql://root@localhost:3306/filmstrip')
+engine = SQLAlchemy.create_engine("mysql://root:@localhost:3306/filmstrip")
 usersMetaData = SQLAlchemy.MetaData()
 
 users = SQLAlchemy.Table('users', usersMetaData,
