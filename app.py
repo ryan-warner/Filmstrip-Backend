@@ -1,19 +1,28 @@
 from flask import Flask
-from flask_cors import CORS
-from auth import authBlueprint
-from user import userBlueprint
-from albums import albumsBlueprint
-# export FLASK_DEBUG=1
-# flask run -h localhost -p 4000
+from testDB import db
+from albumsTest import albumsBlueprintTest
 
 app = Flask(__name__)
-CORS(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost:3306/filmstrip'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
-app.register_blueprint(authBlueprint)
-app.register_blueprint(userBlueprint)
-app.register_blueprint(albumsBlueprint)
+app.register_blueprint(albumsBlueprintTest)
 
 
-@app.route("/api/v1/user/photos", methods=["GET"])
-def getPhotos():
-    return {"string": "Getting photos."}
+testJson = {
+    "username": "test",
+    "firstName": "test",
+    "lastName": "test",
+    "email": "fake@gmail.com",
+}
+
+#testUser = Users(username="me3", email="rwarner322@gatech.edu", password=b'123')
+#db.session.add(testUser)
+#db.session.commit()
+
+#for item in Users.query.all():
+#    for album in item.albums:
+#        print(album.albumDescription)
+
+#print(Albums.query.filter_by(albumName='Better Name :)').first().albumName)
