@@ -2,7 +2,7 @@ from functools import wraps
 from flask import request
 import jwt
 import datetime
-from db import cursor, connection
+from testDB import db, Users
 
 from dotenv import dotenv_values
 config = dotenv_values(".env")
@@ -14,6 +14,7 @@ def validateToken(f):
         if request.method == "POST" and request.path == "/api/v1/user":
             currentUser = None
             return f(currentUser, *args, **kwargs)
+        
         if "Authorization" in request.headers:
             token = request.headers["Authorization"].split(" ")[1]
         if not token:
@@ -24,25 +25,20 @@ def validateToken(f):
             }, 401
         try:
             data = jwt.decode(token, config["JWT_SECRET"], algorithms=["HS512"])
-            returnUser = "SELECT * FROM users WHERE username = %s"
-            values = (data["username"],)
-
-            cursor.execute(returnUser, values)
-            currentUser = cursor.fetchone()
+            currentUser = Users.query.filter_by(username=data["username"]).first()
             if currentUser is None:
                 return {
                 "message": "Invalid Authentication token!",
                 "data": None,
                 "error": "Unauthorized"
             }, 401
-            print()
             if datetime.datetime.fromtimestamp(data["exp"]) < datetime.datetime.now():
                 return {
                     "message": "User needs to login again!",
                     "data": None,
                     "error": "Authentication token expired"
                 }, 401
-            if currentUser[6] == True:
+            if currentUser.needsNewToken == True:
                 return {
                     "message": "User needs to login again!",
                     "data": None,
@@ -63,8 +59,6 @@ def validateToken(f):
     return decorated
 
 def invalidate(currentUser):
-    updateUser = "UPDATE users SET needsNewToken = true WHERE email = %s"
-    values = (currentUser[3],)
-    cursor.execute(updateUser, values)
-    connection.commit()
+    Users.query.filter_by(email=currentUser.email).update(dict(needsNewToken=True))
+    db.session.commit()
     return None;
