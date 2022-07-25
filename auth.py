@@ -1,10 +1,10 @@
 from flask import request, Blueprint, jsonify
-from db import cursor, connection
+from database import db, Users
+from validateToken import invalidate
+import validateToken
 import bcrypt
 import jwt
 import datetime
-from validateToken import invalidate
-import validateToken
 
 from dotenv import dotenv_values
 config = dotenv_values(".env")
@@ -12,25 +12,17 @@ config = dotenv_values(".env")
 authBlueprint = Blueprint("authBlueprint", __name__)
 @authBlueprint.route("/api/v1/auth/login", methods=["POST"])
 def login():
-    returnUser = "SELECT * FROM users WHERE username = %s OR email = %s"
-    values = (request.json['userIdentifier'],request.json['userIdentifier'])
-
-    cursor.execute(returnUser, values)
-    result = cursor.fetchone()
-    
-    if result is None:
+    result = Users.query.filter(( Users.username ==request.json["userIdentifier"] ) | ( Users.email == request.json["userIdentifier"] )).first()
+    print(result.password)
+    if result is None or result.password is None:
         return {"result": "User not found"}
-    elif bcrypt.checkpw(request.json["password"].encode("utf-8"), result[5]):
+    elif bcrypt.checkpw(request.json["password"].encode("utf-8"), result.password):
+        if result.needsNewToken:
+            result.needsNewToken = False
+            db.session.commit()
 
-        updateUser = "UPDATE users SET needsNewToken = false WHERE email = %s"
-        values = (result[3],)
-        cursor.execute(updateUser, values)
-        connection.commit()
-
-        encoded = jwt.encode({"username": result[0], "email": result[3], "exp": datetime.datetime.now() + datetime.timedelta(days=7)}, config["JWT_SECRET"], algorithm="HS512")
+        encoded = jwt.encode({"username": result.username, "email": result.email, "exp": datetime.datetime.now() + datetime.timedelta(days=7)}, config["JWT_SECRET"], algorithm="HS512")
         response = jsonify(result="Success",token=encoded)
-        #response.headers.add("Access-Control-Allow-Origin","http://localhost:3000")
-        #response.headers.add("content-type","application/json; charset=utf-8")
         return response
         
     else: 

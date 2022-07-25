@@ -1,5 +1,5 @@
-from flask import request, Blueprint
-from db import cursor, connection
+from flask import request, Blueprint, jsonify
+from database import db, Users
 import bcrypt
 import validateToken
 
@@ -8,96 +8,47 @@ userBlueprint = Blueprint("userBlueprint", __name__)
 @validateToken.validateToken
 def user(currentUser):
     ## Method to get user info ##
-    if request.method == "GET":        
-        return {
-            "username": currentUser[0],
-            "firstName": currentUser[1],
-            "lastName": currentUser[2],
-            "fullName": currentUser[1] + " " + currentUser[2],
-            "email": currentUser[3]
+    if request.method == "GET":  
+        result ={
+            "username": currentUser.username,
+            "firstName": currentUser.firstName,
+            "lastName": currentUser.lastName,
+            "email": currentUser.email,
+            "userID": currentUser.userID,
+            "needsNewToken": currentUser.needsNewToken,
+            "registrationMethod": currentUser.registrationMethod
         }
-
+        return result
     ## Method to create user ##
     elif request.method == "POST":
+        checkUsername = Users.query.filter_by(username=request.json["username"]).first()
+        if checkUsername is not None:
+            return {"result": "Username taken"}
 
-        checkUser = "SELECT * FROM users WHERE username = %s OR email = %s"
-        values = (request.form["username"], request.form["email"])
-        cursor.execute(checkUser, values)
-
-        if cursor.fetchone() is not None:
-            return {"result": "User already exists"}
-
+        checkEmail = Users.query.filter_by(email=request.json["email"]).first()
+        if checkEmail is not None:
+            return {"result": "Email already exists in the database"}
+        
+        user = Users(**request.json)
         salt = bcrypt.gensalt()
         password = bcrypt.hashpw(request.form["password"].encode("utf-8"), salt)
+        user.password = password
 
-        values = (request.form["username"], request.form["firstName"], request.form["lastName"], request.form["email"], password)
-        registerUser = "INSERT INTO users" \
-            "(username, firstName, lastName, email, password)" \
-            "VALUES (%s, %s, %s, %s, %s)"
-        
-        cursor.execute(registerUser, values)
-        connection.commit()
-
-        return {"string": "Creating user."}
+        db.session.add(user)
+        db.session.commit()
+        return {"string": "Created user."}
 
     ## Method to update user information ##
     elif request.method == "PATCH":
-        fields = []
-        values = []
-        for item in request.form:
-            if item == "username":
-                fields += [item]
-                values += [request.form[item]]
-                continue;
-            elif item == "firstName":
-                fields += [item]
-                values += [request.form[item]]
-                continue;
-            elif item == "lastName":
-                fields += [item]
-                values += [request.form[item]]
-                continue;
-            elif item == "password":
-                fields += [item]
-                values += [request.form[item]]
-                continue;
-            elif item == "email":
-                fields += [item]
-                values += [request.form[item]]
-                continue;
-            else:
-                return {
-                    "message": "Invalid field provided.",
-                    "data": None,
-                    "error": "Incorrect format"
-                }
-
-        updateUser = "UPDATE users SET "
-
-        for field in fields:
-            if fields.index(field) < len(fields) - 1:
-                updateUser += field + " = %s, "
-            else:
-                updateUser += field + " = %s WHERE email = %s;"
-        values += [currentUser[3]]
-
-        cursor.execute(updateUser, values)
-        connection.commit()
+        user = Users.query.filter_by(userID=currentUser.userID).update(dict(request.json))
+        db.session.commit()
         return {"string": "Updating user."}
 
     ## Method to delete user ##
     elif request.method == "DELETE":
-        getUser = "SELECT * FROM users WHERE email = %s"
-        values = (request.form["email"],)
-        cursor.execute(getUser, values)
-        result = cursor.fetchone()
-
-        if bcrypt.checkpw(request.form["password"].encode("utf-8"), bytes(result[5])):
-            deleteUser = "DELETE FROM users WHERE email = %s"
-            values = (request.form["email"],)
-
-            cursor.execute(deleteUser, values)
-            connection.commit()
-            return {"string": "User Deleted"}
+        if bcrypt.checkpw(request.json["password"].encode("utf-8"), currentUser.password):
+            Users.query.filter_by(userID = currentUser.userID).delete()
+            db.session.commit()
+            return {"string": "Deleted user."}
         else:
             return {"string": "Incorrect password"}

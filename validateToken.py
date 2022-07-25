@@ -1,8 +1,8 @@
 from functools import wraps
 from flask import request
+from database import db, Users
 import jwt
 import datetime
-from testDB import db, Users
 
 from dotenv import dotenv_values
 config = dotenv_values(".env")
