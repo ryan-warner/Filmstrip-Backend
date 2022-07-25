@@ -1,6 +1,7 @@
 from flask import Flask
 from database import db
 from albums import albumsBlueprint
+from photos import photosBlueprint
 from user import userBlueprint
 from auth import authBlueprint
 
@@ -12,3 +13,4 @@ db.init_app(app)
 app.register_blueprint(albumsBlueprint)
 app.register_blueprint(userBlueprint)
 app.register_blueprint(authBlueprint)
+app.register_blueprint(photosBlueprint)

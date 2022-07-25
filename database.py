@@ -24,6 +24,7 @@ class Users(db.Model):
     needsNewToken = db.Column(db.Boolean, default=False)
     registrationMethod = db.Column(db.String(255), default="username")
     albums = db.relationship("Albums", backref="user")
+    photos = db.relationship("Photos", backref="user", lazy=True)
 
 @dataclass
 class Albums(db.Model):
@@ -43,3 +44,21 @@ class Albums(db.Model):
     albumCamera = db.Column(db.String(255))
     albumFormat = db.Column(db.String(255), default="35mm")
     albumFilm = db.Column(db.String(255))
+    photos = db.relationship("Photos", backref="album", lazy=True)
+
+@dataclass
+class Photos(db.Model):
+    __tablename__ = "photos"
+    photoID: int
+    albumID: int
+    userID: int
+    photoName: str
+    photoPath: str
+    thumbPath: str
+
+    photoID = db.Column(db.Integer, primary_key=True)
+    albumID = db.Column(db.Integer, db.ForeignKey('albums.albumID'))
+    userID = db.Column(db.Integer, db.ForeignKey('users.userID'))
+    photoName = db.Column(db.String(255))
+    photoPath = db.Column(db.String(255))
+    thumbPath = db.Column(db.String(255))
