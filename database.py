@@ -55,6 +55,8 @@ class Photos(db.Model):
     photoName: str
     photoPath: str
     thumbPath: str
+    orientation: str
+    photoType: str
 
     photoID = db.Column(db.Integer, primary_key=True)
     albumID = db.Column(db.Integer, db.ForeignKey('albums.albumID'))
@@ -62,3 +64,5 @@ class Photos(db.Model):
     photoName = db.Column(db.String(255))
     photoPath = db.Column(db.String(255))
     thumbPath = db.Column(db.String(255))
+    orientation = db.Column(db.String(10))
+    photoType = db.Column(db.String(4))
