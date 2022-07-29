@@ -1,5 +1,5 @@
 from flask import Flask
-from database import db
+from database import db, Photos
 from albums import albumsBlueprint
 from photos import photosBlueprint
 from user import userBlueprint

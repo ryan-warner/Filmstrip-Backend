@@ -3,6 +3,12 @@ from dataclasses import dataclass
 
 db = SQLAlchemy()
 
+AlbumsLookup = db.Table(
+    "albumsLookup",
+    db.Column("photoID",db.Integer, db.ForeignKey('photos.photoID')),
+    db.Column("albumID", db.Integer, db.ForeignKey('albums.albumID'))
+)
+
 @dataclass
 class Users(db.Model):
     __tablename__ = 'users'
@@ -44,11 +50,11 @@ class Albums(db.Model):
     albumCamera = db.Column(db.String(255))
     albumFormat = db.Column(db.String(255), default="35mm")
     albumFilm = db.Column(db.String(255))
-    photos = db.relationship("Photos", backref="album", lazy=True)
+    photos = db.relationship("Photos", lazy=True, secondary=AlbumsLookup, back_populates="albums")
 
 @dataclass
 class Photos(db.Model):
-    __tablename__ = "photos"
+    __tablename__ = 'photos'
     photoID: int
     albumID: int
     userID: int
@@ -59,10 +65,15 @@ class Photos(db.Model):
     photoType: str
 
     photoID = db.Column(db.Integer, primary_key=True)
-    albumID = db.Column(db.Integer, db.ForeignKey('albums.albumID'))
+    albumID = db.Column(db.Integer)
     userID = db.Column(db.Integer, db.ForeignKey('users.userID'))
     photoName = db.Column(db.String(255))
     photoPath = db.Column(db.String(255))
     thumbPath = db.Column(db.String(255))
     orientation = db.Column(db.String(10))
     photoType = db.Column(db.String(4))
+    albums = db.relationship("Albums", lazy=True, secondary=AlbumsLookup, back_populates="photos")
+
+    #photo = db.relationship("Photos", backref="albumsLookup", lazy=True, foreign_keys=[photoID])
+    #albums = db.relationship("Albums", backref="albumsLookup", lazy=True, foreign_keys=[albumID])
+

@@ -79,7 +79,7 @@ def createThumbnail(filename):
 
         size = 512, 512
         image.thumbnail(size)
-        
+
         if orientation != 1:
             #image = Image.open(config["THUMB_FOLDER"] + "/" + filename)
             if orientation == 6:
@@ -97,7 +97,10 @@ def createThumbnail(filename):
             else:
                 return "landscape"
         elif orientation == 1 or orientation == 3:
-            return "landscape"
+            if image.height > image.width:
+                return "portrait"
+            else:
+                return "landscape"
         else: 
             return "portrait"
 
