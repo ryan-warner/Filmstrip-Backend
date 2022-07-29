@@ -62,6 +62,7 @@ class Photos(db.Model):
     thumbPath: str
     orientation: str
     photoType: str
+    favorite: bool
 
     photoID = db.Column(db.Integer, primary_key=True)
     userID = db.Column(db.Integer, db.ForeignKey('users.userID'))
@@ -70,6 +71,7 @@ class Photos(db.Model):
     thumbPath = db.Column(db.String(255))
     orientation = db.Column(db.String(10))
     photoType = db.Column(db.String(4))
+    favorite = db.Column(db.Boolean, default=False)
     albums = db.relationship("Albums", lazy=True, secondary=AlbumsLookup, back_populates="photos")
 
     #photo = db.relationship("Photos", backref="albumsLookup", lazy=True, foreign_keys=[photoID])
