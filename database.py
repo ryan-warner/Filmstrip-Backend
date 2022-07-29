@@ -56,7 +56,6 @@ class Albums(db.Model):
 class Photos(db.Model):
     __tablename__ = 'photos'
     photoID: int
-    albumID: int
     userID: int
     photoName: str
     photoPath: str
@@ -65,7 +64,6 @@ class Photos(db.Model):
     photoType: str
 
     photoID = db.Column(db.Integer, primary_key=True)
-    albumID = db.Column(db.Integer)
     userID = db.Column(db.Integer, db.ForeignKey('users.userID'))
     photoName = db.Column(db.String(255))
     photoPath = db.Column(db.String(255))
