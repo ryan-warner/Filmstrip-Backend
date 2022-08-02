@@ -30,7 +30,7 @@ class Users(db.Model):
     needsNewToken = db.Column(db.Boolean, default=False)
     registrationMethod = db.Column(db.String(255), default="username")
     albums = db.relationship("Albums", backref="user")
-    photos = db.relationship("Photos", backref="user", lazy=True)
+    photos = db.relationship("Photos", backref="user", lazy='dynamic')
 
 @dataclass
 class Albums(db.Model):
@@ -50,7 +50,7 @@ class Albums(db.Model):
     albumCamera = db.Column(db.String(255))
     albumFormat = db.Column(db.String(255), default="35mm")
     albumFilm = db.Column(db.String(255))
-    photos = db.relationship("Photos", lazy=True, secondary=AlbumsLookup, back_populates="albums")
+    photos = db.relationship("Photos", lazy='dynamic', secondary=AlbumsLookup, back_populates="albums")
 
 @dataclass
 class Photos(db.Model):
@@ -72,7 +72,7 @@ class Photos(db.Model):
     orientation = db.Column(db.String(10))
     photoType = db.Column(db.String(4))
     favorite = db.Column(db.Boolean, default=False)
-    albums = db.relationship("Albums", lazy=True, secondary=AlbumsLookup, back_populates="photos")
+    albums = db.relationship("Albums", lazy='dynamic', secondary=AlbumsLookup, back_populates="photos")
 
     #photo = db.relationship("Photos", backref="albumsLookup", lazy=True, foreign_keys=[photoID])
     #albums = db.relationship("Albums", backref="albumsLookup", lazy=True, foreign_keys=[albumID])

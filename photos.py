@@ -43,13 +43,18 @@ def photos(currentUser):
     elif request.method == "PATCH":
         return {"string": "Updating photo."}
     elif request.method == "GET":
-        photos = Users.query.filter_by(email=currentUser.email).first().photos
+        if "favorites" in request.args and request.args.get("favorites") == "true":
+            photos = Users.query.filter_by(email=currentUser.email).first().photos.filter_by(favorite=True).all()
+            print(photos)
+        else:
+            photos = Users.query.filter_by(email=currentUser.email).first().photos
+
         output = []
-        
+
         for photo in photos:
             image = open(photo.thumbPath, "rb")
             encoded = base64.b64encode(image.read()).decode("utf-8")
-            output += [{"image": encoded, "imageID": photo.photoID, "orientation": photo.orientation, "type": photo.photoType}]
+            output += [{"image": encoded, "imageID": photo.photoID, "orientation": photo.orientation, "type": photo.photoType, "favorite": photo.favorite}]
             
         return {"data": output}
     elif request.method == "DELETE":
