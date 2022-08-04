@@ -116,8 +116,6 @@ def createThumbnail(filename):
 @validateToken.validateToken
 def favorite(currentUser):
     photo = Photos.query.filter_by(userID=currentUser.userID, photoID=request.json["photoID"])
-    #print(request.json["setFavorite"])
     photo.update({"favorite": request.json["setFavorite"]})
-    print(photo)
     db.session.commit()
     return {"result": "true"}
