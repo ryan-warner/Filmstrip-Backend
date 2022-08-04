@@ -111,3 +111,13 @@ def createThumbnail(filename):
 
     except IOError:
         return IOError
+
+@photosBlueprint.route("/api/v1/photo/favorite", methods=["POST"])
+@validateToken.validateToken
+def favorite(currentUser):
+    photo = Photos.query.filter_by(userID=currentUser.userID, photoID=request.json["photoID"])
+    #print(request.json["setFavorite"])
+    photo.update({"favorite": request.json["setFavorite"]})
+    print(photo)
+    db.session.commit()
+    return {"result": "true"}
