@@ -52,3 +52,9 @@ def user(currentUser):
             return {"string": "Deleted user."}
         else:
             return {"string": "Incorrect password"}
+
+@userBlueprint.route("/api/v1/user/albums", methods=["GET"])
+@validateToken.validateToken
+def userAlbums(currentUser):
+    albums = Users.query.filter_by(email=currentUser.email).first().albums
+    return jsonify(albums)
