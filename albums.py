@@ -1,6 +1,7 @@
 from flask import request, Blueprint, jsonify
 from database import Albums, db, Users
 import validateToken
+import base64
 
 albumsBlueprint = Blueprint("albumsBlueprint", __name__)
 @albumsBlueprint.route("/api/v1/albums", methods=["POST", "PATCH", "GET", "DELETE"])
@@ -21,8 +22,15 @@ def albums(currentUser):
         return {"string": "Updating album."}
 
     elif request.method == "GET":
-        albums = Users.query.filter_by(email=currentUser.email).first().albums
-        return jsonify(albums)
+        photos = Albums.query.filter_by(userID=currentUser.userID, albumID=request.args.get("albumID")).first().photos.all()
+        output = []
+
+        for photo in photos:
+            image = open(photo.thumbPath, "rb")
+            encoded = base64.b64encode(image.read()).decode("utf-8")
+            output += [{"image": encoded, "imageID": photo.photoID, "orientation": photo.orientation, "type": photo.photoType, "favorite": photo.favorite}]
+            
+        return {"data": output}
 
     elif request.method == "DELETE":
         Albums.query.filter_by(albumName=request.json["albumName"], userID = currentUser.userID).delete()
