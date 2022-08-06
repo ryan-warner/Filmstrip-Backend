@@ -1,5 +1,5 @@
 from flask import request, Blueprint
-from database import Photos, Users, db
+from database import Photos, Users, Albums, db
 from werkzeug.utils import secure_filename
 import validateToken
 from PIL import Image
@@ -45,7 +45,6 @@ def photos(currentUser):
     elif request.method == "GET":
         if "favorites" in request.args and request.args.get("favorites") == "true":
             photos = Users.query.filter_by(email=currentUser.email).first().photos.filter_by(favorite=True).all()
-            print(photos)
         else:
             photos = Users.query.filter_by(email=currentUser.email).first().photos
 
@@ -116,6 +115,37 @@ def createThumbnail(filename):
 @validateToken.validateToken
 def favorite(currentUser):
     photo = Photos.query.filter_by(userID=currentUser.userID, photoID=request.json["photoID"])
-    photo.update({"favorite": request.json["setFavorite"]})
+    photo.update({"favorite": bool(request.json["setFavorite"])})
     db.session.commit()
-    return {"result": "true"}
+    return {
+        "result": "Successfully updated favorites.",
+        "isFavorite": photo.first().favorite
+    }
+
+@photosBlueprint.route("/api/v1/photo/album", methods=["POST", "DELETE"])
+@validateToken.validateToken
+def album(currentUser):
+    if request.method == "POST":
+        photoType = type(request.json["photoID"])
+        albumType = type(request.json["albumID"])
+        if photoType == int and albumType == int:
+            album = Albums.query.filter_by(albumID=request.json["albumID"]).first()
+            album.photos.append(Photos.query.filter_by(photoID=request.json["photoID"]).first())
+            db.session.commit()
+            return {"string": "Added photo to album."}
+        elif photoType == list and albumType == int:
+            album = Albums.query.filter_by(albumID=request.json["albumID"]).first()
+            for photo in request.json["photoID"]:
+                album.photos.append(Photos.query.filter_by(photoID=photo).first())
+            db.session.commit()
+            return {"string": "Added photos to album."}
+        elif photoType == int and albumType == list:
+            for album in request.json["albumID"]:
+                Albums.query.filter_by(albumID=album).first().photos.append(Photos.query.filter_by(photoID=request.json["photoID"]).first())
+            db.session.commit()
+            return {"string": "Added photo to albums."}
+        else:
+            return {"string": "Invalid request."}
+    elif request.method == "DELETE":
+        print("Bye")
+        return {"string": "Removing photo from album."}
